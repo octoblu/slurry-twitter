@@ -1,0 +1,6 @@
+{
+  angular: [
+    { key: 'slurry.track' }
+    { key: 'slurry.follow' }
+  ]
+}
