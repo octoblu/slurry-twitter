@@ -51,6 +51,7 @@
     "passport-octoblu": "^2.0.1",
     "passport-twitter": "^1.0.4",
     "slurry-core": "^1.0.0",
+    "slurry-spreader": "^1.0.2",
     "twitter": "^1.4.0"
   },
   "peerDependencies": {},

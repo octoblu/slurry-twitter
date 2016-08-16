@@ -17,23 +17,24 @@ class PublicFilteredStream
     @_throttledMessage = _.throttle meshbluHttp.message, 500, leading: true, trailing: false
 
   do: ({slurry}, callback) =>
-    data =
+    metadata =
       track: _.join(slurry.track, ',')
       follow: _.join(slurry.follow, ',')
 
-    @twitter.stream 'statuses/filter', data, (stream) =>
+    @twitter.stream 'statuses/filter', metadata, (stream) =>
       stream.on 'data', (event) =>
         message =
           devices: ['*']
-          metadata: data
+          metadata: metadata
           data: event
 
         @_throttledMessage message, as: @userDeviceUuid, (error) =>
           console.error error if error?
 
-      stream.on 'error', console.error
+      stream.on 'error', (error) =>
+        console.error error.stack
 
-      return callback()
+      return callback null, stream
 
   _userError: (code, message) =>
     error = new Error message

@@ -6,15 +6,44 @@ path = require 'path'
 NOT_FOUND_RESPONSE = {metadata: {code: 404, status: http.STATUS_CODES[404]}}
 
 class ConfigureHandler
-  constructor: ->
+  constructor: ({ @slurrySpreader }={}) ->
     @configurations = @_getConfigurations()
+    @_slurries = {}
+    @slurrySpreader.on 'create', @_onSlurryCreate
+    @slurrySpreader.on 'destroy', @_onSlurryDestroy
 
   onConfigure: ({auth, userDeviceUuid, encrypted, config}, callback) =>
-    configuration = config.schemas?.selected?.configure
-    job = @configurations[configuration]
-    return callback null, NOT_FOUND_RESPONSE unless job?
+    selectedConfiguration = config.schemas?.selected?.configure
+    slurry = {
+      auth
+      selectedConfiguration
+      encrypted
+      config
+      uuid: userDeviceUuid
+    }
+    @slurrySpreader.add slurry, callback
 
-    job.action {encrypted, auth, userDeviceUuid}, config, callback
+  _onSlurryCreate: (slurry) =>
+    {
+      uuid
+      selectedConfiguration
+      config
+      encrypted
+      auth
+    } = slurry
+    slurryStream = @configurations[selectedConfiguration]
+    return unless slurryStream?
+
+    @_slurries[uuid]?.destroy()
+    slurryStream.action {encrypted, auth, userDeviceUuid: uuid}, config, (error, slurryStream) =>
+      return console.error error.stack if error?
+      @_slurries[uuid] = slurryStream
+
+  _onSlurryDestroy: (slurry) =>
+    {
+      uuid
+    } = slurry
+    @_slurries[uuid]?.destroy()
 
   formSchema: (callback) =>
     callback null, @_formSchemaFromConfigurations @configurations
