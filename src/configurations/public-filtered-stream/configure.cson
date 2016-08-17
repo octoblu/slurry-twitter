@@ -5,9 +5,12 @@
   required: ['slurry']
   properties:
     slurry:
-      required: ['stream_type']
       type: 'object'
       properties:
+        disabled:
+          type: 'boolean'
+          title: 'Disabled'
+          description: 'Stop streaming'
         track:
           type: 'array'
           title: 'Track Keywords'

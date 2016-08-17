@@ -21,6 +21,7 @@ class ConfigureHandler
       config
       uuid: userDeviceUuid
     }
+    return @slurrySpreader.remove(slurry, callback) if config.slurry?.disabled
     @slurrySpreader.add slurry, callback
 
   _onSlurryCreate: (slurry) =>
