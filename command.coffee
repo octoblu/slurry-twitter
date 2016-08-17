@@ -3,9 +3,9 @@ MeshbluConfig    = require 'meshblu-config'
 path             = require 'path'
 Slurry           = require 'slurry-core'
 OctobluStrategy  = require 'slurry-core/octoblu-strategy'
+MessageHandler   = require 'slurry-core/message-handler'
+ConfigureHandler = require 'slurry-core/configure-handler'
 ApiStrategy      = require './src/api-strategy'
-MessageHandler   = require './src/message-handler'
-ConfigureHandler = require './src/configure-handler'
 SlurrySpreader   = require 'slurry-spreader'
 
 MISSING_SERVICE_URL = 'Missing required environment variable: SLURRY_TWITTER_SERVICE_URL'
@@ -29,13 +29,16 @@ class Command
       redisUri: process.env.SLURRY_SPREADER_REDIS_URI
       namespace: process.env.SLURRY_SPREADER_NAMESPACE
 
+    jobsPath = path.join __dirname, 'src/jobs'
+    configurationsPath = path.join __dirname, 'src/configurations'
+
     return {
       apiStrategy:     apiStrategy
       deviceType:      'slurry:twitter'
       disableLogging:  process.env.DISABLE_LOGGING == "true"
       meshbluConfig:   meshbluConfig
-      messageHandler:  new MessageHandler
-      configureHandler: new ConfigureHandler {@slurrySpreader}
+      messageHandler:  new MessageHandler {jobsPath}
+      configureHandler: new ConfigureHandler {@slurrySpreader, configurationsPath}
       octobluStrategy: octobluStrategy
       port:            process.env.PORT || 80
       appOctobluHost:  process.env.APP_OCTOBLU_HOST
