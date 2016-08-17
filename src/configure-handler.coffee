@@ -36,6 +36,8 @@ class ConfigureHandler
     return unless slurryStream?
 
     @_slurries[uuid]?.destroy()
+
+    return if config.slurry?.disabled
     slurryStream.action {encrypted, auth, userDeviceUuid: uuid}, config, (error, slurryStream) =>
       return console.error error.stack if error?
       @_slurries[uuid] = slurryStream
