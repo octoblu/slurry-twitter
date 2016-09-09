@@ -1,8 +1,9 @@
-http    = require 'http'
-_       = require 'lodash'
-Twitter = require 'twitter'
-MeshbluHttp = require 'meshblu-http'
+http          = require 'http'
+_             = require 'lodash'
+Twitter       = require 'twitter'
+MeshbluHttp   = require 'meshblu-http'
 MeshbluConfig = require 'meshblu-config'
+SlurryStream  = require 'slurry-core/slurry-stream'
 
 class PublicFilteredStream
   constructor: ({@encrypted, @auth, @userDeviceUuid}) ->
@@ -22,6 +23,10 @@ class PublicFilteredStream
       follow: _.join(slurry.follow, ',')
 
     @twitter.stream 'statuses/filter', metadata, (stream) =>
+      slurryStream = new SlurryStream
+      slurryStream.destroy = =>
+        stream.destroy()
+
       stream.on 'data', (event) =>
         message =
           devices: ['*']
@@ -29,12 +34,12 @@ class PublicFilteredStream
           data: event
 
         @_throttledMessage message, as: @userDeviceUuid, (error) =>
-          console.error error if error?
+          slurryStream.emit 'error', error if error
 
       stream.on 'error', (error) =>
-        console.error error.stack
+        slurryStream.emit 'error', error
 
-      return callback null, stream
+      return callback null, slurryStream
 
   _userError: (code, message) =>
     error = new Error message
